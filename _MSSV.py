@@ -261,14 +261,14 @@ def select_move(cur_state, remain_time):
             depth = min(7, count)
 
         bestScore = -math.inf
-        for move in valid_moves:
-            if move.index_local_board == currentBoard:
-                cur_state.blocks[currentBoard][move.x, move.y] = move.value
-                score = miniMax(cur_state, currentBoard, depth, alpha, beta, isMaximize)
-                cur_state.blocks[currentBoard][move.x, move.y] = move.value
-                if score + bonus[move.x*3 + move.y] > bestScore:
-                    bestScore = score + bonus[move.x*3 + move.y]
-                    bestMove = move
+        # for move in valid_moves:
+        #     if move.index_local_board == currentBoard:
+        #         cur_state.blocks[currentBoard][move.x, move.y] = move.value
+        #         score = miniMax(cur_state, currentBoard, depth, alpha, beta, isMaximize)
+        #         cur_state.blocks[currentBoard][move.x, move.y] = move.value
+        #         if score + bonus[move.x*3 + move.y] > bestScore:
+        #             bestScore = score + bonus[move.x*3 + move.y]
+        #             bestMove = move
 
     return bestMove
 
