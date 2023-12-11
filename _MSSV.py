@@ -15,6 +15,11 @@ board = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0]
 ]
 
+DEPTV1 = 4
+DEPTV2 = 5
+DEPTV3 = 6
+DEPTV4 = 7
+
 def checkWinCondition(map):
     a = 1
     if (map[0] + map[1] + map[2]  == a * 3 or map[3] + map[4] + map[5]  == a * 3 or map[6] + map[7] + map[8]  == a * 3 or map[0] + map[3] + map[6]  == a * 3 or map[1] + map[4] + map[7]  == a * 3 or
@@ -92,7 +97,7 @@ def evaluateGame(position, currentBoard):
 
 def evaluatePos(pos, square):
     evaluation = 0
-    pos[square] = -1
+    pos[square] = ai
     points = [0.2, 0.17, 0.2, 0.17, 0.22, 0.17, 0.2, 0.17, 0.2]
     evaluation += points[square]
     # Prefer creating pairs
@@ -109,13 +114,13 @@ def evaluatePos(pos, square):
 
 
     # Block a players turn if necessary
-    pos[square] = 1
+    pos[square] = player
     a = 3
     # player
     if(pos[0] + pos[1] + pos[2]  == a or pos[3] + pos[4] + pos[5]  == a or pos[6] + pos[7] + pos[8]  == a or pos[0] + pos[3] + pos[6]  == a or pos[1] + pos[4] + pos[7]  == a or
         pos[2] + pos[5] + pos[8]  == a or pos[0] + pos[4] + pos[8]  == a or pos[2] + pos[4] + pos[6]  == a):
         evaluation += 2
-    pos[square] = -1
+    pos[square] = ai
     evaluation -= checkWinCondition(pos)*15
     pos[square] = 0
     return evaluation
@@ -136,7 +141,7 @@ def miniMax(position, boardToPlayOn, depth, alpha, beta, maximize):
 
     #The board to play on is full(draw)
     if(boardToPlayOn != -1 and position[boardToPlayOn].count(0) == 0):
-            boardToPlayOn = -1
+        boardToPlayOn = -1
 
 
     if(maximize): # maximizer turn
@@ -147,7 +152,7 @@ def miniMax(position, boardToPlayOn, depth, alpha, beta, maximize):
                 for c in range(9):
                     if checkWinCondition(position[mm]) == 0:
                         if(position[mm][c] == 0):
-                            position[mm][c] = -1
+                            position[mm][c] = ai
                             evalut = miniMax(position, c, depth - 1, alpha, beta, False)["mE"]
                             position[mm][c] = 0
                         if evalut > maxEval:
@@ -159,7 +164,7 @@ def miniMax(position, boardToPlayOn, depth, alpha, beta, maximize):
             else:
                 evalut = {"mE":None, "tP":None}
                 if(position[boardToPlayOn][mm] == 0):
-                    position[boardToPlayOn][mm] = -1
+                    position[boardToPlayOn][mm] = ai
                     evalut = miniMax(position, mm, depth - 1, alpha, beta, False)
                     position[boardToPlayOn][mm] = 0
                     blop = evalut["mE"]
@@ -167,8 +172,8 @@ def miniMax(position, boardToPlayOn, depth, alpha, beta, maximize):
                         maxEval = blop
                         tmpPlay = evalut["tP"]
                     alpha = max(alpha, blop)
-                    if(beta <= alpha):
-                        break
+                if(beta <= alpha):
+                    break
         return { "mE": maxEval, "tP": tmpPlay}
     else: # minimizer turn
         minEval = math.inf
@@ -178,7 +183,7 @@ def miniMax(position, boardToPlayOn, depth, alpha, beta, maximize):
                 for c in range(9):
                     if checkWinCondition(position[mm]) == 0:
                         if (position[mm][c] == 0):
-                            position[mm][c] = 1
+                            position[mm][c] = player
                             evalua = miniMax(position, c, depth - 1, alpha, beta, True)["mE"];
                             position[mm][c] = 0
                         if evalua < minEval:
@@ -190,7 +195,7 @@ def miniMax(position, boardToPlayOn, depth, alpha, beta, maximize):
             else:
                 evalua = {"mE":None, "tP":None}
                 if (position[boardToPlayOn][mm] == 0):
-                    position[boardToPlayOn][mm] = 1
+                    position[boardToPlayOn][mm] = player
                     evalua = miniMax(position, mm, depth - 1, alpha, beta, True)
                     position[boardToPlayOn][mm] = 0
                     blep = evalua["mE"]
@@ -198,32 +203,34 @@ def miniMax(position, boardToPlayOn, depth, alpha, beta, maximize):
                         minEval = blep
                         tmpPlay = evalua["tP"]
                     beta = min(beta, blep)
-                    if (beta <= alpha):
-                        break
+                if (beta <= alpha):
+                    break
         return {"mE": minEval, "tP": tmpPlay}
 
 
 def select_move(cur_state, remain_time):
 
+    bestMove = -1
+    bonus = [-math.inf, -math.inf, -math.inf, -math.inf, -math.inf, -math.inf, -math.inf, -math.inf, -math.inf]
     if (cur_state.previous_move != None):
         board[cur_state.previous_move.index_local_board][3 * cur_state.previous_move.x + cur_state.previous_move.y] = 1
-    print(board)
     count = 0
     depth = 0
     # isMaximize = (cur_state.player_to_move == -1)
     #Count number of empty cells
     for i in range(9):
-        for c in range(9):
-            if(board[i][c] == 0):
-                count+=1
+        if (checkWinCondition(board[i])):
+            for c in range(9):
+                if(board[i][c] == 0):
+                    count+=1
 
     #Calculate the depth
     if (remain_time > 110):
-        depth = min(4, count)
+        depth = min(DEPTV1, count)
     elif (remain_time > 100):
-        depth = min(5, count)
+        depth = min(DEPTV2, count)
     else:
-        depth = min(6, count)
+        depth = min(DEPTV3, count)
 
 
     # Find what board should play when can play any
@@ -233,53 +240,43 @@ def select_move(cur_state, remain_time):
     if(cur_state.free_move):
         currentBoard = miniMax(board, -1, depth, -math.inf, math.inf, True)["tP"]
     else:
-        currentBoard = cur_state.previous_move.x*3 + cur_state.previous_move.y
+        if cur_state.previous_move == None:
+            currentBoard = -1
+        else:
+            currentBoard = cur_state.previous_move.x*3 + cur_state.previous_move.y
 
     #Find best move
-    bestMove = None
-    bonus = [-math.inf, -math.inf, -math.inf, -math.inf, -math.inf, -math.inf, -math.inf, -math.inf, -math.inf]
     if(len(valid_moves) > 0):
         #bonus score by cell index
-        for i in range(9):
-            if (board[currentBoard][i] == 0):
-                bonus[i] = evaluatePos(board[currentBoard], i) * 45
-
-        if (remain_time > 100):
-            depth = min(5, count)
-        elif (remain_time > 90):
-            depth = min(6, count)
-        else:
-            depth = min(7, count)
-
-
-        bestMove = 0
         for i in range(9):
             if board[currentBoard][i] == 0:
                 bestMove = i
                 break
-        # for move in valid_moves:
-        #     if move.index_local_board == currentBoard:
-        #         cur_state.blocks[currentBoard][move.x, move.y] = move.value
-        #         # print(board, currentBoard, depth, alpha, beta, isMaximize)
-        #         score = miniMax(board, currentBoard, depth, alpha, beta, isMaximize)
-        #         # print('Code run to here')
-        #         cur_state.blocks[currentBoard][move.x, move.y] = move.value
-        #         if score + bonus[move.x*3 + move.y] > bestScore:
-        #             bestScore = score + bonus[move.x*3 + move.y]
-        #             bestMove = move
-        #             print(bestMove)
-        for b in range(9):
-            if(checkWinCondition(board[currentBoard]) == 0):
-                if (board[currentBoard][b] == 0):
-                    board[currentBoard][b] = -1
-                    savedMm = miniMax(board , b, depth, -math.inf, math.inf, False)
-                    score2 = savedMm["mE"]
-                    board[currentBoard][b] = 0
-                    bonus[b] += score2
+        if bestMove != -1:
+            for i in range(9):
+                if (board[currentBoard][i] == 0):
+                    bonus[i] = evaluatePos(board[currentBoard], i) * 45
 
-        for i in range(9):
-            if(bonus[i] > bonus[bestMove]):
-                bestMove = i
+            if (remain_time > 100):
+                depth = min(DEPTV1, count)
+            elif (remain_time > 90):
+                depth = min(DEPTV2, count)
+            else:
+                depth = min(DEPTV3, count)
+
+
+            for b in range(9):
+                if(checkWinCondition(board[currentBoard]) == 0):
+                    if (board[currentBoard][b] == 0):
+                        board[currentBoard][b] = ai
+                        savedMm = miniMax(board , b, depth, -math.inf, math.inf, False)
+                        score2 = savedMm["mE"]
+                        board[currentBoard][b] = 0
+                        bonus[b] += score2
+
+            for i in range(9):
+                if(bonus[i] > bonus[bestMove]):
+                    bestMove = i
         x = bestMove // 3
         y = bestMove % 3
         board[currentBoard][bestMove] = -1
