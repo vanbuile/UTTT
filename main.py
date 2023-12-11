@@ -2,10 +2,8 @@ from state import State, State_2
 import time
 from importlib import import_module
 
-pX = 0
-pY = 0  
+  
 def main(player_X, player_O, rule = 1):
-    global pX, pY
     dict_player = {1: 'X', -1: 'O'}
     if rule == 1:
         cur_state = State()
@@ -25,10 +23,6 @@ def main(player_X, player_O, rule = 1):
         print("turn:", turn, end='\n\n')
         if cur_state.game_over:
             print("winner:", dict_player[cur_state.player_to_move * -1])
-            if dict_player[cur_state.player_to_move * -1] == 'X':
-                pX += 1
-            else:
-                pY += 1
             break
         
         start_time = time.time()
@@ -47,19 +41,11 @@ def main(player_X, player_O, rule = 1):
         if remain_time_X < 0 or remain_time_O < 0:
             print("out of time")
             print("winner:", dict_player[cur_state.player_to_move * -1])
-            if dict_player[cur_state.player_to_move * -1] == 'X':
-                pX += 1
-            else:
-                pY += 1
             break
                 
         if elapsed_time > 10.0:
             print("elapsed time:", elapsed_time)
             print("winner: ", dict_player[cur_state.player_to_move * -1])
-            if dict_player[cur_state.player_to_move * -1] == 'X':
-                pX += 1
-            else:
-                pY += 1
             break
         
         cur_state.act_move(new_move)
@@ -71,5 +57,4 @@ def main(player_X, player_O, rule = 1):
     print("O:", cur_state.count_O)
 
 
-main('_MSSV','random_agent',2)
-print('X win: ', pX, ' O win ', pY)
+main('random_agent','_MSSV',2)
